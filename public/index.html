@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assistente de Datasheets Eletrônicos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    form {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 300px;
+    }
+
+    input[type="file"], input[type="text"], button {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .progress-container {
+      width: 100%;
+      background-color: #f3f3f3;
+      border-radius: 5px;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .progress-bar {
+      height: 20px;
+      width: 0;
+      background-color: #4CAF50;
+      border-radius: 5px;
+    }
+
+    .response-container {
+      margin-top: 30px;
+      width: 100%;
+      max-width: 600px;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+<body>
+  <h1>Assistente de Datasheets Eletrônicos</h1>
+  
+  <form id="uploadForm" enctype="multipart/form-data">
+    <label for="pdf">Escolha um arquivo PDF:</label>
+    <input type="file" id="pdf" name="pdf" accept=".pdf" required><br><br>
+    
+    <label for="question">Digite sua pergunta:</label>
+    <input type="text" id="question" name="question" required><br><br>
+
+    <button type="submit">Enviar</button>
+  </form>
+
+  <!-- Barra de Progresso -->
+  <div class="progress-container" id="progressContainer">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <!-- Resposta da OpenAI -->
+  <div class="response-container" id="responseContainer">
+    <h2>Resposta:</h2>
+    <pre id="response"></pre>
+  </div>
+
+  <script>
+    document.getElementById('uploadForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+      const responseElement = document.getElementById('response');
+      const progressContainer = document.getElementById('progressContainer');
+      const progressBar = document.getElementById('progressBar');
+      const responseContainer = document.getElementById('responseContainer');
+
+      // Mostrar a barra de progresso
+      progressContainer.style.display = 'block';
+
+      // Definir o progresso inicial
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 10;
+        progressBar.style.width = progress + '%';
+        if (progress >= 100) {
+          clearInterval(interval);
+        }
+      }, 1000); // Simular progresso a cada 1 segundo
+
+      try {
+        const response = await fetch('/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          // Mostrar a resposta da OpenAI
+          responseContainer.style.display = 'block';
+          responseElement.textContent = 'Resposta da OpenAI:\n' + result.openAiResponse;
+        } else {
+          responseElement.textContent = 'Erro: ' + result.message;
+        }
+      } catch (error) {
+        responseElement.textContent = 'Erro ao enviar o formulário: ' + error.message;
+      } finally {
+        // Finalizar a barra de progresso
+        progressBar.style.width = '100%';
+        setTimeout(() => {
+          progressContainer.style.display = 'none'; // Ocultar a barra de progresso
+        }, 1000);
+      }
+    });
+  </script>
+</body>
+</html>
